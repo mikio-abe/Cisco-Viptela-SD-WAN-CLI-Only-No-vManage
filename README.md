@@ -28,6 +28,7 @@ Enterprise Root CAの手動作成・署名、ホワイトリスト登録、OMP�
 
 > **Note:** Replace this section with your EVE-NG topology screenshot.
 > Upload the image to GitHub and update the link below.
+<img width="760" alt="image" src="https://github.com/user-attachments/assets/af04d91a-240b-432c-8089-b2c4f0ef13d3" />
 
 <!-- ![Lab11 Topology](images/lab11-topology.png) -->
 

@@ -25,6 +25,8 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<br>
 
 ### Topology
 
+The diagram below shows the three-layer structure: Cloud0/VPN 512 (management), SD-WAN Overlay (vBond/vSmart/vEdge connected via CEs), and MPLS Underlay (PE-PE backbone). All Viptela nodes connect to Cloud0 for out-of-band management, while data plane traffic flows through the CE-PE MPLS infrastructure.
+
 <img width="650" alt="image" src="https://github.com/user-attachments/assets/0521999c-c07b-418b-85ce-82838da53618" />
 
 ### Underlay (MPLS)
@@ -62,6 +64,8 @@ VPN 0=Transport、VPN 1=Service、VPN 512=Management（Cloud0経由、証明書S
 ---
 
 ## 🔀 Protocol Design
+
+This section compares the architectural approaches of FortiGate and Viptela SD-WAN, and explains how the overlay and underlay layers interact. FortiGate uses an all-in-one appliance model, while Viptela separates control, orchestration, and data planes across dedicated components.
 
 ### Protocol Stack Comparison: FortiGate vs Viptela
 

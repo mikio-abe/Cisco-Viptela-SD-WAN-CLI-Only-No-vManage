@@ -21,14 +21,47 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<br>
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture & IP Addressing
 
 ### Topology
 
 <img width="650" alt="image" src="https://github.com/user-attachments/assets/0521999c-c07b-418b-85ce-82838da53618" />
 
+### Underlay (MPLS)
 
+| Link | Subnet | Device A | Device B |
+|---|---|---|---|
+| PE1–PE2 | 10.200.1.0/30 | PE1: .1 | PE2: .2 |
+| PE1–CE1 | 10.101.1.0/30 | PE1: .1 | CE1: .2 |
+| PE2–CE2 | 10.102.1.0/30 | PE2: .1 | CE2: .2 |
 
+### Overlay (Viptela → CE)
+
+| Link | Subnet | Device A | Device B |
+|---|---|---|---|
+| CE1–vEdge02 | 10.1.1.0/30 | CE1 e0/1: .1 | vEdge02 ge0/0: .2 |
+| CE1–vBond | 10.1.2.0/30 | CE1 e0/2: .1 | vBond ge0/0: .2 |
+| CE1–vSmart | 10.1.3.0/30 | CE1 e0/3: .1 | vSmart eth0: .2 |
+| CE2–vEdge10 | 10.200.2.0/24 | CE2 e0/1: .1 | vEdge10 ge0/0: .2 |
+
+### Viptela System Parameters
+
+| Device | System-IP | Site-ID | Org | Mgmt (VPN 512) |
+|---|---|---|---|---|
+| vBond | 10.10.10.1 | 1000 | Lab11 | 192.168.133.10 |
+| vSmart | 10.10.10.2 | 1000 | Lab11 | 192.168.133.11 |
+| vEdge02 | 10.10.10.3 | 1 | Lab11 | 192.168.133.12 |
+| vEdge10 | 10.10.10.4 | 2 | Lab11 | 192.168.133.13 |
+
+> **Note:** All Viptela nodes are connected to Cloud0 (VPN 512) for out-of-band management. Certificate distribution via SCP uses these management IPs.
+
+**【日本語サマリ】**<br>
+構成図直下にUnderlay（MPLS）とOverlay（Viptela）のIPアドレスを配置。<br>
+VPN 0=Transport、VPN 1=Service、VPN 512=Management（Cloud0経由、証明書SCP転送に使用）。
+
+---
+
+## 🔀 Protocol Design
 
 ### Protocol Stack Comparison: FortiGate vs Viptela
 
@@ -65,40 +98,6 @@ Site1 → vEdge02 →[IPSec]→ CE1 →[CEF]→ PE1 →[MPLS]→ PE2 →[CEF]→
 **【日本語サマリ】**<br>
 FortiGateは1台完結型、Viptelaはコントローラ分離型（SDN）。<br>
 Overlay（OMP/IPSec）とUnderlay（BGP/MPLS）の2層構造でデータを転送します。
-
----
-
-## 📋 IP Addressing
-
-### Underlay (MPLS)
-
-| Link | Subnet | Device A | Device B |
-|---|---|---|---|
-| PE1–PE2 | 10.200.1.0/30 | PE1: .1 | PE2: .2 |
-| PE1–CE1 | 10.101.1.0/30 | PE1: .1 | CE1: .2 |
-| PE2–CE2 | 10.102.1.0/30 | PE2: .1 | CE2: .2 |
-
-### Overlay (Viptela)
-
-| Link | Subnet | Device A | Device B |
-|---|---|---|---|
-| CE1–vEdge02 | 10.1.1.0/30 | CE1 e0/1: .1 | vEdge02 ge0/0: .2 |
-| CE1–vBond | 10.1.2.0/30 | CE1 e0/2: .1 | vBond ge0/0: .2 |
-| CE1–vSmart | 10.1.3.0/30 | CE1 e0/3: .1 | vSmart eth0: .2 |
-| CE2–vEdge10 | 10.200.2.0/24 | CE2 e0/1: .1 | vEdge10 ge0/0: .2 |
-
-### Viptela System Parameters
-
-| Device | System-IP | Site-ID | Org | Mgmt (VPN 512) |
-|---|---|---|---|---|
-| vBond | 10.10.10.1 | 1000 | Lab11 | 192.168.133.10 |
-| vSmart | 10.10.10.2 | 1000 | Lab11 | 192.168.133.11 |
-| vEdge02 | 10.10.10.3 | 1 | Lab11 | 192.168.133.12 |
-| vEdge10 | 10.10.10.4 | 2 | Lab11 | 192.168.133.13 |
-
-**【日本語サマリ】**<br>
-Underlay（MPLS）とOverlay（Viptela）のIPアドレス一覧。<br>
-VPN 0=Transport、VPN 1=Service、VPN 512=Management。
 
 ---
 
@@ -436,7 +435,7 @@ evidence/
 ```
 
 **【日本語サマリ】**<br>
-CLI検証出力をevidence/ディレクトリに整理しました。<br>
+CLI検証出力をevidence/ディレクトリに整理しました。
 
 ---
 

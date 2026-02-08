@@ -330,7 +330,7 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 1    192.168.20.0/24  0.0.0.0     C,Red,R 10.10.10.4  default  ipsec
 ```
 
-**【日本語サマリ】**
+**【日本語サマリ】**<BR>
 MPLS Underlay → Transport到達性 → DTLS接続 → OMP Peer → BFD → OMPルート交換の順で検証し、全ステップ成功を確認。
 
 ---

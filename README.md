@@ -27,7 +27,8 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<br>
 
 The diagram below shows the three-layer structure: Cloud0/VPN 512 (management), SD-WAN Overlay (vBond/vSmart/vEdge connected via CEs), and MPLS Underlay (PE-PE backbone). All Viptela nodes connect to Cloud0 for out-of-band management, while data plane traffic flows through the CE-PE MPLS infrastructure.
 
-<img width="650" alt="image" src="https://github.com/user-attachments/assets/8bfb8be0-1f1c-448c-8399-67e9fedba2bc" />
+<img width="650" alt="image" src="https://github.com/user-attachments/assets/06592ee2-d89c-4d03-ba78-42d2a4f7ac11" />
+
 
 
 ### Underlay (MPLS)

@@ -25,7 +25,8 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<BR>
 
 ### Topology
 
-<img width="500" alt="image" src="https://github.com/user-attachments/assets/af04d91a-240b-432c-8089-b2c4f0ef13d3" />
+<img width="650" alt="image" src="https://github.com/user-attachments/assets/73c7b0c2-da4a-4049-bd27-d7121b4f08a0" />
+
 
 ### Protocol Stack Comparison: FortiGate vs Viptela
 

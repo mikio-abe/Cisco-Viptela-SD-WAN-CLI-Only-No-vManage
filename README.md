@@ -14,8 +14,10 @@ This lab builds a Viptela SD-WAN fabric on top of an existing MPLS L3VPN underla
 - **OMP Route Exchange** – Overlay route distribution through vSmart controller
 - **IPSec Data Plane** – Encrypted site-to-site tunnels with BFD monitoring
 
-**【日本語サマリ】**
-MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。証明書・ホワイトリスト・OMP・IPSec/BFDまでの全工程をvManageなしで実施し、制御プレーン分離アーキテクチャの動作を検証。
+**【日本語サマリ】**<br>
+MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<br>
+証明書・ホワイトリスト・OMP・IPSec/BFDまでの全工程をvManageなしで実施。<br>
+制御プレーン分離アーキテクチャの動作を検証しました。
 
 ---
 
@@ -23,7 +25,8 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。証明書
 
 ### Topology
 
-<img width="760" alt="image" src="https://github.com/user-attachments/assets/af04d91a-240b-432c-8089-b2c4f0ef13d3" />
+<img width="650" alt="image" src="https://github.com/user-attachments/assets/04dc2ca8-149b-4294-bb6e-148165372f71" />
+
 
 ### Protocol Stack Comparison: FortiGate vs Viptela
 
@@ -57,8 +60,9 @@ Site1 → vEdge02 →[IPSec]→ CE1 →[CEF]→ PE1 →[MPLS]→ PE2 →[CEF]→
 | **vManage** | Management plane (GUI, templates, monitoring) – *not used in this lab* | Dashboard |
 | **vEdge** | Data plane (IPSec tunnels, packet forwarding) | Hands & feet |
 
-**【日本語サマリ】**
-FortiGateは1台完結型、Viptelaはコントローラ分離型（SDN）。Overlay（OMP/IPSec）とUnderlay（BGP/MPLS）の2層構造でデータを転送する。
+**【日本語サマリ】**<br>
+FortiGateは1台完結型、Viptelaはコントローラ分離型（SDN）。<br>
+Overlay（OMP/IPSec）とUnderlay（BGP/MPLS）の2層構造でデータを転送します。
 
 ---
 
@@ -90,8 +94,9 @@ FortiGateは1台完結型、Viptelaはコントローラ分離型（SDN）。Ove
 | vEdge02 | 10.10.10.3 | 1 | Lab11 | 192.168.133.12 |
 | vEdge10 | 10.10.10.4 | 2 | Lab11 | 192.168.133.13 |
 
-**【日本語サマリ】**
-Underlay（MPLS）とOverlay（Viptela）のIPアドレス一覧。VPN 0=Transport、VPN 1=Service、VPN 512=Management。
+**【日本語サマリ】**<br>
+Underlay（MPLS）とOverlay（Viptela）のIPアドレス一覧。<br>
+VPN 0=Transport、VPN 1=Service、VPN 512=Management。
 
 ---
 
@@ -178,8 +183,10 @@ vBond# show control local-properties | include certificate-status
 certificate-status                Installed
 ```
 
-**【日本語サマリ】**
-EVE-NG上でOpenSSLによりRoot CAを手動作成し、4台に対してSCP転送→CSR生成→署名→インストールを実施。vManageが自動化している処理を手動で体験。
+**【日本語サマリ】**<br>
+EVE-NG上でOpenSSLによりRoot CAを手動作成。<br>
+4台に対してSCP転送→CSR生成→署名→インストールを実施。<br>
+vManageが自動化している処理を手動で体験しました。
 
 ---
 
@@ -238,8 +245,9 @@ orchestrator valid-vedges CD4DC9D3-8B58-434B-B17D-043359541538
  org                              Lab11
 ```
 
-**【日本語サマリ】**
-vBondとvSmartにデバイスのシリアル番号を手動登録。未登録だとSERNTPRES/BIDNTVRFDエラーで接続拒否される。
+**【日本語サマリ】**<br>
+vBondとvSmartにデバイスのシリアル番号を手動登録。<br>
+未登録だとSERNTPRES/BIDNTVRFDエラーで接続拒否されます。
 
 ---
 
@@ -323,7 +331,7 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 1    192.168.20.0/24  0.0.0.0     C,Red,R 10.10.10.4  default  ipsec
 ```
 
-**【日本語サマリ】**
+**【日本語サマリ】**<br>
 MPLS Underlay → Transport到達性 → DTLS接続 → OMP Peer → BFD → OMPルート交換の順で検証し、全ステップ成功を確認。
 
 ---
@@ -370,8 +378,11 @@ After all control connections came up, `show omp routes` returned empty on both 
 | **Cause** | No Service VPN (VPN 1) configured; OMP does not advertise VPN 0 transport routes |
 | **Fix** | Create VPN 1 with loopback interface (physical LAN interface not connected in EVE-NG) |
 
-**【日本語サマリ】**
-BGP同一ASループ→allowas-in、証明書未インストール→Root CA手動構築、ホワイトリスト未登録→request vedge add、OMPルート空→VPN 1作成で各解決。
+**【日本語サマリ】**<br>
+BGP同一ASループ　　　→allowas-in<br>
+証明書未インストール　→Root CA手動構築<br>
+ホワイトリスト未登録　→request vedge add<br>
+OMPルート空　　　　　→VPN 1作成で各解決
 
 ---
 
@@ -399,8 +410,9 @@ After deployment, verify the SD-WAN fabric in this order. Each step depends on t
 6. Route exchange  : vEdge# show omp routes             → VPN 1 prefixes with status C,I,R
 ```
 
-**【日本語サマリ】**
-デプロイ後の検証順序。Underlay→Transport到達性→コントローラ接続→OMP→BFD→ルート交換の順で確認。
+**【日本語サマリ】**<br>
+デプロイ後の検証順序。<br>
+Underlay→Transport到達性→コントローラ接続→OMP→BFD→ルート交換の順で確認。
 
 ---
 
@@ -421,8 +433,8 @@ evidence/
   vbond_show_orchestrator_valid_vsmarts.txt
 ```
 
-**【日本語サマリ】**
-CLI検証出力をevidence/ディレクトリに整理。面接時やレビュー時にすぐ提示可能。
+**【日本語サマリ】**<br>
+CLI検証出力をevidence/ディレクトリに整理しました。<br>
 
 ---
 
@@ -436,8 +448,10 @@ CLI検証出力をevidence/ディレクトリに整理。面接時やレビュ�
 
 4. **Underlay independence**: The MPLS underlay (CEF + label switching) transports IPSec-encapsulated overlay packets. The overlay and underlay are logically separate but physically share the same infrastructure.
 
-**【日本語サマリ】**
-Viptelaはコントローラ分離型でスケールに有利。vManageなし構築で証明書・ホワイトリストの内部動作を理解。OMPはBGP相当の制御プレーンプロトコル。
+**【日本語サマリ】**<br>
+Viptelaはコントローラ分離型でスケールに有利。<br>
+vManageなし構築で証明書・ホワイトリストの内部動作を理解できました。<br>
+OMPはBGP相当の制御プレーンプロトコルとなります。
 
 ---
 

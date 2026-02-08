@@ -279,6 +279,20 @@ vBondとvSmartにデバイスのシリアル番号を手動登録。<br>
 
 ## ✅ Verification Results
 
+### Operational Verification: FortiGate vs Viptela
+
+Both platforms provide CLI commands to monitor tunnel health, quality metrics, and path selection. The key difference is that FortiGate makes failover decisions locally, while Viptela delegates path selection to vSmart based on BFD metrics reported by vEdges.
+
+| Verification | FortiGate | Viptela |
+|---|---|---|
+| **Tunnel UP/DOWN** | `diagnose sys sdwan member` | `show bfd sessions` |
+| **Quality Metrics** | `diagnose sys sdwan health-check status` | `show app-route statistics` |
+| **Current Path** | `diagnose sys sdwan service` | `show omp routes` (active TLOC = C,I,R) |
+| **Failover Trigger** | SLA threshold breach → local decision | app-route policy threshold → vSmart decision |
+| **Decision Maker** | FortiGate itself | vSmart controller (centralized) |
+
+> **Note:** This lab uses a single TLOC (default/ipsec), so `show app-route statistics` reports metrics but no failover occurs. To verify failover behavior equivalent to the [FortiGate SD-WAN brownout test](https://github.com/mikio-abe/SD-WAN), a second WAN link with a different color (e.g. `biz-internet`) and an `app-route policy` on vSmart would be required.
+
 ### 1. MPLS Underlay
 
 Verify that the MPLS backbone is operational. LDP neighbor should be in "Oper" state between PE routers. BGP on CE2 should show received prefixes (PfxRcd) from PE2, confirming that `allowas-in` is working — without it, PfxRcd would be 0 because CE1 and CE2 share the same AS 65000.

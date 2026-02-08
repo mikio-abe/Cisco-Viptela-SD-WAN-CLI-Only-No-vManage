@@ -379,10 +379,10 @@ After all control connections came up, `show omp routes` returned empty on both 
 
 **【日本語サマリ】**<BR>
 下記で解決。<BR>
-BGP同一ASループ→allowas-in<BR>
-証明書未インストール→Root CA手動構築<BR>
-ホワイトリスト未登録→request vedge add<BR>
-OMPルート空→VPN 1作成**<BR>
+BGP同一ASループ     → allowas-in<BR>
+証明書未インストール → Root CA手動構築<BR>
+ホワイトリスト未登録 → request vedge add<BR>
+OMPルート空         → VPN 1作成<BR>
 
 
 ---

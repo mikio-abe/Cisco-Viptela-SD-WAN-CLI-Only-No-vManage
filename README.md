@@ -183,7 +183,7 @@ certificate-status                Installed
 ```
 
 **【日本語サマリ】**<BR>
-EVE-NG上でOpenSSLによりRoot CAを手動作成。
+EVE-NG上でOpenSSLによりRoot CAを手動作成。<BR>
 4台に対してSCP転送→CSR生成→署名→インストールを実施。<BR>
 vManageが自動化している処理を手動で体験。
 

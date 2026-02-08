@@ -29,14 +29,13 @@ The diagram below shows the three-layer structure: Cloud0/VPN 512 (management), 
 
 <img width="650" alt="image" src="https://github.com/user-attachments/assets/974109d7-2baf-4a03-8f1c-325aa576cb40" />
 
-
 ### Underlay (MPLS)
 
 | Link | Subnet | Device A | Device B |
 |---|---|---|---|
-| PE1–PE2 | 10.200.1.0/30 | PE1: .1 | PE2: .2 |
-| PE1–CE1 | 10.101.1.0/30 | PE1: .1 | CE1: .2 |
-| PE2–CE2 | 10.102.1.0/30 | PE2: .1 | CE2: .2 |
+| PE1–PE2 | 10.200.1.0/30 | PE1 e0/1: .1 | PE2 e0/1: .2 |
+| PE1–CE1 | 10.101.1.0/30 | PE1 e0/0: .1 | CE1 e0/0: .2 |
+| PE2–CE2 | 10.102.1.0/30 | PE2 e0/0: .1 | CE2 e0/0: .2 |
 
 ### Overlay (Viptela → CE)
 
@@ -46,6 +45,23 @@ The diagram below shows the three-layer structure: Cloud0/VPN 512 (management), 
 | CE1–vBond | 10.1.2.0/30 | CE1 e0/2: .1 | vBond ge0/0: .2 |
 | CE1–vSmart | 10.1.3.0/30 | CE1 e0/3: .1 | vSmart eth0: .2 |
 | CE2–vEdge10 | 10.200.2.0/24 | CE2 e0/1: .1 | vEdge10 ge0/0: .2 |
+
+### CE/PE Interface Summary
+
+| Device | Interface | Connected To | IP Address | Role |
+|---|---|---|---|---|
+| **PE1** | e0/0 | CE1 e0/0 | 10.101.1.1/30 | PE-CE (VRF) |
+| | e0/1 | PE2 e0/1 | 10.200.1.1/30 | MPLS Core |
+| | Loopback0 | — | 1.1.1.1/32 | BGP Router-ID |
+| **PE2** | e0/0 | CE2 e0/0 | 10.102.1.1/30 | PE-CE (VRF) |
+| | e0/1 | PE1 e0/1 | 10.200.1.2/30 | MPLS Core |
+| | Loopback0 | — | 2.2.2.2/32 | BGP Router-ID |
+| **CE1** | e0/0 | PE1 e0/0 | 10.101.1.2/30 | Uplink to MPLS |
+| | e0/1 | vEdge02 ge0/0 | 10.1.1.1/30 | SD-WAN Site 1 |
+| | e0/2 | vBond ge0/0 | 10.1.2.1/30 | Orchestrator |
+| | e0/3 | vSmart eth0 | 10.1.3.1/30 | Controller |
+| **CE2** | e0/0 | PE2 e0/0 | 10.102.1.2/30 | Uplink to MPLS |
+| | e0/1 | vEdge10 ge0/0 | 10.200.2.1/24 | SD-WAN Site 2 |
 
 ### Viptela System Parameters
 
@@ -72,12 +88,16 @@ This section compares the architectural approaches of FortiGate and Viptela SD-W
 
 | Function | FortiGate SD-WAN | Viptela SD-WAN |
 |---|---|---|
+| **Path Identity** | SD-WAN Member (interface-based: MPLS-VPN, SASE-VPN) | TLOC: Transport Locator (System-IP + Color + Encap) |
 | **Data Encryption** | IPSec | IPSec |
 | **Route Exchange** | BGP / Static | OMP (via vSmart) |
 | **Path Monitoring** | Health-check (ping/HTTP) | BFD (delay/jitter/loss) |
+| **Path Selection** | SLA target (latency/jitter/loss) per SD-WAN rule | vSmart policy per TLOC color (app-route policy) |
 | **Control Plane** | Embedded (single appliance) | DTLS (vEdge ↔ vBond/vSmart) |
 | **Management** | FortiManager (optional) | vManage (optional) |
 | **Design Philosophy** | All-in-one appliance | Controller-separated (SDN) |
+
+> **Path Identity is the core of SD-WAN.** Both platforms define WAN paths as selectable members — FortiGate uses interface-based SD-WAN Members (e.g. `MPLS-VPN`, `SASE-VPN`), while Viptela uses TLOCs identified by `System-IP + Color + Encap`. The `show omp routes` output shows TLOC per route: `TLOC IP: 10.10.10.4, COLOR: default, ENCAP: ipsec`. In a dual-path design, each WAN link gets a different color (e.g. `mpls`, `biz-internet`), and vSmart selects the best TLOC per application based on BFD metrics — equivalent to FortiGate's SLA-based failover.
 
 ### Layered Architecture
 

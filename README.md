@@ -25,7 +25,8 @@ MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築。<br>
 
 ### Topology
 
-<img width="650"" alt="image" src="https://github.com/user-attachments/assets/974803f9-a08a-4058-93e7-97e6d91528a3" />
+<img width="650" alt="image" src="https://github.com/user-attachments/assets/0521999c-c07b-418b-85ce-82838da53618" />
+
 
 
 

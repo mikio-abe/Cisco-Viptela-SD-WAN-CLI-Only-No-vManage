@@ -26,11 +26,7 @@ Enterprise Root CAの手動作成・署名、ホワイトリスト登録、OMP�
 
 ### Topology
 
-> **Note:** Replace this section with your EVE-NG topology screenshot.
-> Upload the image to GitHub and update the link below.
 <img width="760" alt="image" src="https://github.com/user-attachments/assets/af04d91a-240b-432c-8089-b2c4f0ef13d3" />
-
-<!-- ![Lab11 Topology](images/lab11-topology.png) -->
 
 ### Protocol Stack Comparison: FortiGate vs Viptela
 
@@ -64,6 +60,11 @@ Site1 → vEdge02 →[IPSec]→ CE1 →[CEF]→ PE1 →[MPLS]→ PE2 →[CEF]→
 | **vManage** | Management plane (GUI, templates, monitoring) – *not used in this lab* | Dashboard |
 | **vEdge** | Data plane (IPSec tunnels, packet forwarding) | Hands & feet |
 
+**【日本語サマリ】**
+
+FortiGate SD-WANは1台で全機能を内蔵する「オールインワン」設計。Viptelaはコントローラ分離型（SDN）設計で、vBond（認証・門番）、vSmart（経路配布・頭脳）、vEdge（データ転送・手足）が役割分担する。
+データの流れはOverlay（IPSecトンネル）とUnderlay（MPLS/CEF）の2層構造。OMPはBGPに相当する制御プレーンプロトコルで、実データは運ばない。
+
 ---
 
 ## 📋 IP Addressing
@@ -93,6 +94,10 @@ Site1 → vEdge02 →[IPSec]→ CE1 →[CEF]→ PE1 →[MPLS]→ PE2 →[CEF]→
 | vSmart | 10.10.10.2 | 1000 | Lab11 | 192.168.133.11 |
 | vEdge02 | 10.10.10.3 | 1 | Lab11 | 192.168.133.12 |
 | vEdge10 | 10.10.10.4 | 2 | Lab11 | 192.168.133.13 |
+
+**【日本語サマリ】**
+
+ViptelaはVPN番号でネットワークを論理分離する：VPN 0（Transport＝WAN接続）、VPN 1（Service＝LAN側ユーザトラフィック）、VPN 512（Management＝管理用）。CE1はvEdge02/vBond/vSmartの3台にそれぞれ物理接続し、CE2はvEdge10に接続。コントローラ（vBond/vSmart）はSite-ID 1000で同一サイト扱い、vEdgeはSite 1/2で拠点を分離。
 
 ---
 
@@ -137,6 +142,10 @@ request certificate install /home/admin/<device>.crt
 vBond# show control local-properties | include certificate-status
 certificate-status                Installed
 ```
+
+**【日本語サマリ】**
+
+vManageがある環境では証明書の配布・署名は自動化される。本ラボではvManageなしのため、EVE-NGホスト上でOpenSSLを使ってRoot CA（認証局）を手動作成し、各ノードにSCPで転送→CSR生成→CA署名→証明書インストールの全8ステップを手動実行。この手順が、vManageが裏側で自動的に処理している内容そのものである。
 
 ---
 
@@ -185,6 +194,10 @@ orchestrator valid-vedges CD4DC9D3-8B58-434B-B17D-043359541538
  validity                         valid
  org                              Lab11
 ```
+
+**【日本語サマリ】**
+
+vBondは「門番」として、登録されていないデバイスからの接続を拒否する。vManageがある環境ではシリアル番号の同期は自動だが、本ラボでは手動登録が必須。vBondにはvSmart（`request controller add`）とvEdge（`request vedge add`）を登録し、vSmartにもvEdge情報を登録する。未登録時のエラーコード：SERNTPRES（シリアル番号未登録）、BIDNTVRFD（ボードID証明書未検証）。
 
 ---
 
@@ -262,6 +275,16 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 > Both sites exchange VPN 1 routes via OMP through vSmart.
 > Status: **C** (Chosen), **I** (Installed), **R** (Resolved) = fully operational.
 
+**【日本語サマリ】**
+
+全6ステップの検証結果：
+1. **MPLS Underlay**: PE間LDP確立、CE間BGPでallowas-inにより同一AS65000のルート受信成功（PfxRcd=4）
+2. **Transport到達性**: vEdge10→vBondへのping成功（MPLS VPN経由、CE2→PE2→PE1→CE1→vBond）
+3. **コントローラ接続**: vSmartにvBond×2、vEdge02、vEdge10の4接続がすべてDTLSでUP
+4. **OMP Peers**: vSmart↔vEdge02/vEdge10間のOMPピアがUP（BGP Established相当）
+5. **BFD**: vEdge02↔vEdge10間のIPSecトンネル上でBFDセッション確立（品質監視）
+6. **OMPルート**: VPN 1のサービスルート（192.168.10.0/24, 192.168.20.0/24）が双方向で交換完了。Status: C,I,R = 完全動作
+
 ---
 
 ## 🔧 Troubleshooting (Issues Encountered)
@@ -298,6 +321,14 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 | **Cause** | No Service VPN (VPN 1) configured. OMP only advertises service VPN routes, not transport VPN 0. |
 | **Fix** | Create VPN 1 with loopback interface (physical interface not connected in EVE-NG) |
 
+**【日本語サマリ】**
+
+構築中に遭遇した4つの問題と解決策：
+1. **BGP ASパスループ**: CE1/CE2が同一AS65000のため、MPLS経由ルートがBGPループ防止で拒否された → `allowas-in`で解決
+2. **証明書未インストール**: vManageなし環境ではEnterprise Root CAの手動構築が必須 → OpenSSLで8ステップの手動証明書管理
+3. **ホワイトリスト未登録**: vManageが自動で行うシリアル番号同期が未実施 → vBond/vSmartで`request vedge add`手動登録
+4. **OMPルート空**: VPN 0（Transport）のルートはOMPで広告されない → VPN 1にLoopbackインターフェースを作成して解決
+
 ---
 
 ## 🛠️ Lab Environment
@@ -310,6 +341,10 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 | **vManage** | Not used (16GB RAM requirement exceeds lab budget) |
 | **Memory Usage** | ~17GB (vBond 2GB + vSmart 2GB + vEdge×2 4GB + CE×2 + PE×2) |
 
+**【日本語サマリ】**
+
+32GB ThinkPad上のEVE-NG Proで構築。vManageは16GB必要なためスキップし、CLI onlyで全操作を実施。メモリ使用量は約17GBで、vBond/vSmart各2GB、vEdge×2で4GB、CE/PE各1GB弱。vManageなしの制約が、逆にコントローラ内部動作（証明書管理・ホワイトリスト同期）の理解を深める結果となった。
+
 ---
 
 ## 📚 Key Takeaways
@@ -321,6 +356,13 @@ VPN  PREFIX           FROM PEER   STATUS  TLOC IP     COLOR    ENCAP
 3. **OMP ≈ BGP for SD-WAN**: OMP is the overlay routing protocol, distributing service VPN routes through vSmart. It does not carry user data — IPSec tunnels handle that.
 
 4. **Underlay independence**: The MPLS underlay (CEF + label switching) transports IPSec-encapsulated overlay packets. The overlay and underlay are logically separate but physically share the same infrastructure.
+
+**【日本語サマリ】**
+
+1. **コントローラ分離 vs オールインワン**: Viptelaは制御(vSmart)・認証(vBond)・データ(vEdge)を分離。FortiGateは1台に統合。分離型はスケールに有利（vSmart1台で100拠点のポリシー一括配布可能）
+2. **vManageの自動化範囲**: 証明書配布、シリアル番号同期、テンプレート展開はすべてvManageが自動化する。本ラボでその「裏側」を手動体験した
+3. **OMP ≈ BGP**: OMPはオーバーレイ経路配布プロトコル（制御プレーン）。実データはIPSecトンネル（データプレーン）が運ぶ。BGPと同じく経路情報のみを扱う
+4. **Underlay独立性**: MPLS Underlay（CEF+ラベルスイッチング）がIPSecカプセルを「荷物」として運搬。Overlay/Underlayは論理的に分離されている
 
 ---
 

@@ -15,7 +15,7 @@ This lab builds a Viptela SD-WAN fabric on top of an existing MPLS L3VPN underla
 * **IPSec Data Plane** – Encrypted site-to-site tunnels with BFD monitoring
 
 **【日本語サマリ】**<br>
-MPLS L3VPN上にViptela SD-WANオーバーレイをCLI onlyで構築しました。<br>
+MPLS L3VPN上にViptela SD-WANオーバーレイをCLIのみで構築しました。<br>
 証明書・ホワイトリスト・OMP・IPSec/BFDまでの全工程をvManageなしで実施しています。<br>
 制御プレーン分離アーキテクチャの動作を検証しました。
 

@@ -2,6 +2,11 @@
 
 💡 This repository documents a hands-on Cisco SD-WAN (Viptela) lab environment built **without vManage**. By intentionally removing vManage from the topology, every automated process — certificate distribution, device whitelist synchronization, template deployment — must be performed manually via CLI. The goal is to verify control plane and data plane behavior through CLI outputs, exposing the mechanisms that vManage normally hides behind its GUI.
 
+**【日本語サマリ】**<br>
+vManageを意図的に外したCisco SD-WAN（Viptela）のハンズオンラボ環境です。<br>
+証明書配布、デバイスホワイトリスト同期、テンプレート展開など、vManageが自動化している全プロセスをCLIで手動実施しました。<br>
+目的は、vManageのGUIが隠している制御プレーン・データプレーンの動作をCLI出力で可視化・検証することです。
+
 ---
 
 ## 🔬 Overview

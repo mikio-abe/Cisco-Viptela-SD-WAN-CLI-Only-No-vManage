@@ -144,7 +144,6 @@ openssl req -x509 -new -nodes -key CA.key -sha256 -days 3650 \
   -out CA.pem -subj "/C=JP/O=Lab11/CN=Lab11-Root-CA"
 ```
 
-**【日本語サマリ】**<br>
 EVE-NGホスト上で2048bit RSA秘密鍵と自己署名Root CA証明書（有効期限10年）を生成しました。
 
 ### Step 2: Distribute Root CA to all Viptela nodes
@@ -158,7 +157,6 @@ scp CA.pem admin@192.168.133.12:/home/admin/CA.pem   # vEdge02
 scp CA.pem admin@192.168.133.13:/home/admin/CA.pem   # vEdge10
 ```
 
-**【日本語サマリ】**<br>
 管理ネットワーク（VPN 512 / Cloud0）経由で4台全ノードにCA証明書をSCP転送しました。
 
 ### Step 3: Install Root CA on each device
@@ -170,7 +168,6 @@ request root-cert-chain install /home/admin/CA.pem
 → "Successfully installed the root certificate chain"
 ```
 
-**【日本語サマリ】**<br>
 各デバイスにRoot CA証明書チェーンをインストールし、このCAが署名した証明書を信頼するよう設定しました。
 
 ### Step 4: Generate CSR on each device
@@ -181,7 +178,6 @@ Generate a Certificate Signing Request on each node. Enter "Lab11" as the organi
 request csr upload /home/admin/<device>.csr
 ```
 
-**【日本語サマリ】**<br>
 各ノードでCSR（Certificate Signing Request）を生成しました。組織名は「Lab11」を指定しています。
 
 ### Step 5: Sign CSRs on EVE-NG host
@@ -201,7 +197,6 @@ openssl x509 -req -in vBond.csr -CA CA.pem -CAkey CA.key \
 # (repeat for vSmart.csr, vEdge02.csr, vEdge10.csr)
 ```
 
-**【日本語サマリ】**<br>
 各デバイスからCSRをSCPで回収し、Root CAで署名してデバイス証明書を発行しました。
 
 ### Step 6: Install signed certificates on each device
@@ -218,7 +213,6 @@ request certificate install /home/admin/<device>.crt
 → "Certificate Install Successful"
 ```
 
-**【日本語サマリ】**<br>
 署名済みデバイス証明書を各ノードに転送しインストールしました。
 
 ### Verification
@@ -259,7 +253,6 @@ vBond# request vedge add chassis-num cd4dc9d3-8b58-434b-b17d-043359541538 \
   serial-num 2E6BDAAFA60AD59836BC60240554BBBB402530D7 org-name Lab11
 ```
 
-**【日本語サマリ】**<br>
 vBond上でvSmartのシリアル番号、vEdge02/vEdge10のシャーシ番号+シリアル番号を手動登録しました。
 
 ### On vSmart: Register vEdges
@@ -274,7 +267,6 @@ vSmart# request vedge add chassis-num cd4dc9d3-8b58-434b-b17d-043359541538 \
   serial-num 2E6BDAAFA60AD59836BC60240554BBBB402530D7 org-name Lab11
 ```
 
-**【日本語サマリ】**<br>
 vSmart側にも同じvEdgeの情報を登録しました。未登録だとBIDNTVRFDエラーでDTLS接続が拒否されます。
 
 ### Verification
@@ -436,7 +428,6 @@ CE1 and CE2 both use AS 65000. When PE2 advertises CE1's routes to CE2, the AS p
 | **Cause** | Same AS (65000) on both CEs; BGP loop prevention rejects routes containing own AS |
 | **Fix** | `neighbor x.x.x.x allowas-in` on both CE1 and CE2 (under address-family ipv4) |
 
-**【日本語サマリ】**<br>
 CE1/CE2が同一AS 65000のため、BGPループ防止機能がルートを拒否しPfxRcd=0になりました。<br>
 `allowas-in`で自ASを含むルートの受信を許可して解決しました。
 
@@ -452,7 +443,6 @@ After deploying initial configurations, `show control connections` returned no e
 | **Diagnosis** | `show control local-properties` → certificate-status: Not-Installed |
 | **Fix** | Full Enterprise Root CA workflow: generate CA → sign CSRs → install certificates on all nodes |
 
-**【日本語サマリ】**<br>
 証明書が未インストールのためDTLS接続が確立しませんでした。<br>
 `show control local-properties`でcertificate-status: Not-Installedを確認し、Enterprise Root CAの全工程を実施して解決しました。
 
@@ -468,7 +458,6 @@ Even after installing certificates, controller connections still failed. Checkin
 | **Cause** | Without vManage, device serial numbers are not synced to vBond/vSmart automatically |
 | **Fix** | `request controller add` (for vSmart) and `request vedge add` (for vEdges) on both vBond and vSmart |
 
-**【日本語サマリ】**<br>
 証明書インストール後も接続が失敗しました。vBondの接続履歴にSERNTPRES/BIDNTVRFDエラーが表示されていました。<br>
 vManageなし環境ではデバイスのシリアル番号が自動同期されないため、手動でホワイトリスト登録して解決しました。
 
@@ -484,7 +473,6 @@ After all control connections came up, `show omp routes` returned empty on both 
 | **Cause** | No Service VPN (VPN 1) configured; OMP does not advertise VPN 0 transport routes |
 | **Fix** | Create VPN 1 with loopback interface (physical LAN interface not connected in EVE-NG) |
 
-**【日本語サマリ】**<br>
 コントローラ接続確立後もOMPルートが空でした。<br>
 OMPはService VPN（VPN 1以上）のルートのみ広告し、Transport VPN 0は対象外です。<br>
 VPN 1にLoopbackインターフェースを作成して解決しました。
